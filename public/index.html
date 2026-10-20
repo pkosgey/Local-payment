@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secure Checkout</title>
+  <script src="https://js.paystack.co/v1/inline.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 24px 70px rgba(0,0,0,0.35);
+      width: 100%;
+      max-width: 440px;
+      padding: 36px 32px 28px;
+      animation: fadeUp 0.4s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .logo { text-align: center; margin-bottom: 26px; }
+    .logo-icon {
+      width: 52px; height: 52px; margin: 0 auto 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+    }
+    .logo h1 { font-size: 21px; color: #1a1a2e; font-weight: 700; }
+    .logo p { font-size: 13px; color: #999; margin-top: 4px; }
+
+    label {
+      display: block; font-size: 13px; font-weight: 600;
+      color: #444; margin-bottom: 7px;
+    }
+    .input-group { margin-bottom: 18px; }
+    .row { display: flex; gap: 12px; }
+    .row .input-group { flex: 1; margin-bottom: 18px; }
+
+    .amount-wrapper { position: relative; }
+    .currency-symbol {
+      position: absolute; left: 14px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 15px; color: #764ba2; font-weight: 700;
+      pointer-events: none;
+    }
+    input[type="number"], input[type="email"], select {
+      width: 100%;
+      padding: 14px 14px 14px 38px;
+      font-size: 16px;
+      border: 2px solid #e8e8ef;
+      border-radius: 11px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: #fafafd;
+      color: #1a1a2e;
+      font-family: inherit;
+    }
+    input[type="email"] { padding-left: 14px; }
+    select { padding-left: 14px; cursor: pointer; }
+    input:focus, select:focus {
+      border-color: #764ba2;
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(118, 75, 162, 0.12);
+    }
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"] { -moz-appearance: textfield; }
+
+    .summary {
+      background: linear-gradient(135deg, #f7f6fc 0%, #f2eefb 100%);
+      border: 1px solid #ece6fa;
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-bottom: 22px;
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 14px;
+    }
+    .summary span:first-child { color: #666; }
+    .summary span:last-child { font-weight: 800; color: #5a3d8a; font-size: 17px; }
+
+    button {
+      width: 100%; padding: 16px; font-size: 16px; font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none; border-radius: 11px; cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.2s, opacity 0.2s;
+      box-shadow: 0 8px 20px rgba(118, 75, 162, 0.35);
+    }
+    button:hover:not(:disabled) { box-shadow: 0 10px 26px rgba(118, 75, 162, 0.45); }
+    button:active:not(:disabled) { transform: scale(0.98); }
+    button:disabled {
+      opacity: 0.45; cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .status {
+      margin-top: 16px; padding: 13px; border-radius: 9px;
+      font-size: 14px; text-align: center; display: none; font-weight: 500;
+    }
+    .status.success { display: block; background: #e6f7ed; color: #0a7d3e; }
+    .status.error { display: block; background: #fdecea; color: #b3261e; }
+
+    .footer {
+      text-align: center; margin-top: 22px;
+      font-size: 12px; color: #bbb;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <div class="logo-icon">💳</div>
+      <h1>Secure Checkout</h1>
+      <p>Pay securely with your card</p>
+    </div>
+
+    <div class="input-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="you@example.com" value="you@example.com">
+    </div>
+
+    <div class="row">
+      <div class="input-group">
+        <label for="currency">Currency</label>
+        <select id="currency">
+          <option value="NGN">NGN ₦</option>
+          <option value="USD">USD $</option>
+          <option value="KES">KES KSh</option>
+          <option value="GHS">GHS ₵</option>
+          <option value="ZAR">ZAR R</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label for="amount">Amount</label>
+        <div class="amount-wrapper">
+          <span class="currency-symbol" id="currencySymbol">₦</span>
+          <input type="number" id="amount" placeholder="0.00" min="1" step="0.01">
+        </div>
+      </div>
+    </div>
+
+    <div class="summary">
+      <span>You will be charged</span>
+      <span id="summaryAmount">₦0.00</span>
+    </div>
+
+    <button id="payBtn" disabled>Pay Now</button>
+    <div class="status" id="status"></div>
+
+    <div class="footer">powered by highron · Secure Payment</div>
+  </div>
+
+  <script>
+    const amountInput   = document.getElementById('amount');
+    const currencySelect = document.getElementById('currency');
+    const currencySymbol = document.getElementById('currencySymbol');
+    const summaryEl     = document.getElementById('summaryAmount');
+    const payBtn        = document.getElementById('payBtn');
+    const statusEl      = document.getElementById('status');
+
+    const SYMBOLS = { NGN: '₦', USD: '$', KES: 'KSh', GHS: '₵', ZAR: 'R' };
+    const LOCALES = { NGN: 'en-NG', USD: 'en-US', KES: 'en-KE', GHS: 'en-GH', ZAR: 'en-ZA' };
+
+    function updateSummary() {
+      const cur = currencySelect.value;
+      const sym = SYMBOLS[cur];
+      const val = parseFloat(amountInput.value);
+      currencySymbol.textContent = sym;
+
+      if (!isNaN(val) && val > 0) {
+        summaryEl.textContent = sym + val.toLocaleString(LOCALES[cur], {
+          minimumFractionDigits: 2, maximumFractionDigits: 2
+        });
+        payBtn.disabled = false;
+      } else {
+        summaryEl.textContent = sym + '0.00';
+        payBtn.disabled = true;
+      }
+    }
+
+    amountInput.addEventListener('input', updateSummary);
+    currencySelect.addEventListener('change', updateSummary);
+
+    payBtn.onclick = function () {
+      const currency = currencySelect.value;
+      const sym = SYMBOLS[currency];
+      const amount = parseFloat(amountInput.value);
+      const email = document.getElementById('email').value.trim();
+
+      if (!email || isNaN(amount) || amount <= 0) {
+        showStatus('Please enter a valid email and amount.', 'error');
+        return;
+      }
+
+      // Paystack uses smallest unit: 50.00 -> 5000
+      const amountSmallest = Math.round(amount * 100);
+
+      statusEl.className = 'status';
+      statusEl.textContent = '';
+
+      const handler = PaystackPop.setup({
+        key: 'pk_test_你的公钥', // ← Replace with your public key
+        email: email,
+        amount: amountSmallest,
+        currency: currency,
+        ref: 'TXN_' + Date.now(),
+        metadata: {
+          custom_fields: [
+            { display_name: 'Currency', variable_name: 'currency', value: currency },
+            { display_name: 'Amount', variable_name: 'amount', value: amount.toFixed(2) }
+          ]
+        },
+        callback: function (response) {
+          showStatus('Verifying payment…', 'success');
+          fetch('/api/verify/' + response.reference)
+            .then(res => res.json())
+            .then(data => {
+              if (data.status === 'success') {
+                showStatus('Payment successful! ' + sym + (data.amount / 100).toFixed(2) + ' ' + currency, 'success');
+              } else {
+                showStatus('Verification failed. Please contact support.', 'error');
+              }
+            })
+            .catch(() => showStatus('Verification error. Please try again.', 'error'));
+        },
+        onClose: function () {
+          showStatus('Payment window closed.', 'error');
+        }
+      });
+      handler.openIframe();
+    };
+
+    function showStatus(msg, type) {
+      statusEl.textContent = msg;
+      statusEl.className = 'status ' + type;
+    }
+  </script>
+</body>
+</html>
